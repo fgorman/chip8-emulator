@@ -29,6 +29,7 @@ typedef struct chip8
 } chip8;
 
 void chip8_init(chip8 * const);
+void chip8_load_rom(chip8 * const, const char * const);
 void chip8_memory_dump(const chip8 * const);
 
 extern int quit;
