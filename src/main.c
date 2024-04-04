@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <SDL.h>
-
 #include "chip8.h"
 #include "io.h"
 

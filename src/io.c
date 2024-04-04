@@ -2,12 +2,10 @@
 
 #include <stdio.h>
 
-#include <SDL.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_video.h>
 
 #include "chip8.h"
-
-#define SCREEN_WIDTH 200
-#define SCREEN_HEIGHT 200
 
 int keys[NUM_KEYS];
 
@@ -51,7 +49,7 @@ void io_get_key_press()
 {
     SDL_Event event;
 
-    while(SDL_PollEvent(&event)){
+    while(SDL_PollEvent(&event)) {
         
         switch( event.type ){
             case SDL_KEYDOWN:

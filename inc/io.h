@@ -1,9 +1,9 @@
 #ifndef KEYPAD_H
 #define KEYPAD_H
 
-#include "chip8.h"
-
 #define NUM_KEYS 16
+#define SCREEN_WIDTH 64
+#define SCREEN_HEIGHT 32
 
 void io_init();
 void io_teardown();

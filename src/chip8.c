@@ -6,10 +6,13 @@
 
 int quit = 0;
 
-void chip8_init(chip8 * em)
+void chip8_init(chip8 * const em)
 {
     memset(em->memory, 0, MEMORY_SIZE);
     memcpy(em->memory+FONT_START_ADDR, FONT, FONT_NUM_SPRITES*FONT_SPRITE_SIZE);
+
+    em->pc = ROM_START_ADDR;
+    em->sp = 0;
 }
 
 void chip8_memory_dump(const chip8 * const em)
