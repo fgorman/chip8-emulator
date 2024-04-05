@@ -11,6 +11,7 @@
 #define STACK_SIZE 16
 #define FONT_START_ADDR 0x50
 #define ROM_START_ADDR 0x200
+#define FLAG_REGISTER 0xFu
 
 typedef uint8_t byte;
 typedef uint16_t word;
