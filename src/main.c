@@ -18,6 +18,4 @@ int main(int argc, char ** argv)
 
     chip8_init(&emulator);
     chip8_load_rom(&emulator, argv[1]);
-
-    chip8_memory_dump(&emulator);
 }

@@ -188,18 +188,6 @@ void chip8_cycle(chip8 * const emulator)
         emulator->sound_timer--;
 }
 
-void chip8_memory_dump(const chip8 * const emulator)
-{
-    printf("[");
-
-    for (int i = 0; i < MEMORY_SIZE-1; i++)
-    {
-        printf("0x%X, ", emulator->memory[i]);
-    }
-
-    printf("0x%X]\n", emulator->memory[MEMORY_SIZE-1]);
-}
-
 /////////////////////////////////////////////////////
 /// Ops Implementations
 /////////////////////////////////////////////////////
