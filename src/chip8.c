@@ -173,6 +173,10 @@ void chip8_cycle(chip8 * const emulator)
     // Fetch
     word instruction = emulator->memory[emulator->pc];
 
+    #ifdef DEBUG
+    debug_log("Fetched instruction: 0x%04X from PC: 0x%04X\n", instruction, emulator->pc);
+    #endif
+
     emulator->pc += 2;
 
     // Decode
