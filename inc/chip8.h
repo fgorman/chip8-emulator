@@ -13,7 +13,7 @@
 #define ROM_START_ADDR 0x200
 #define FLAG_REGISTER 0xFu
 
-#define CYCLE_DELAY 5
+#define CYCLE_DELAY_NS 5000
 
 typedef uint8_t byte;
 typedef uint16_t word;

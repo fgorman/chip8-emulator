@@ -21,17 +21,18 @@ int main(int argc, char ** argv)
 
     io_init();
 
-    time_t prev_time = time(NULL);
+    struct timespec current_time, prev_time;
+    clock_gettime(CLOCK_MONOTONIC_RAW, &prev_time);
     bool quit = false;
 
     while (!quit)
     {
         quit = io_get_key_press();
 
-        time_t current_time = time(NULL);
-        time_t time_diff = current_time - prev_time;
+	clock_gettime(CLOCK_MONOTONIC_RAW, &current_time);
+	uint64_t time_diff = current_time.tv_nsec - prev_time.tv_nsec;
 
-        if (time_diff > CYCLE_DELAY)
+        if (time_diff > CYCLE_DELAY_NS)
         {
             prev_time = current_time;
 
