@@ -8,9 +8,15 @@
 
 int quit = 0;
 
-// Ops
-void op_00E0(chip8 * const);
-void op_00EE(chip8 * const);
+/////////////////////////////////////////////////////
+/// Ops Definitions
+/////////////////////////////////////////////////////
+
+typedef void op_func(chip8 * const, word);
+
+void op_noop(chip8 * const, word);
+void op_00E0(chip8 * const, word);
+void op_00EE(chip8 * const, word);
 void op_1nnn(chip8 * const, word);
 void op_2nnn(chip8 * const, word);
 void op_3xkk(chip8 * const, word);
@@ -44,8 +50,38 @@ void op_Fx33(chip8 * const, word);
 void op_Fx55(chip8 * const, word);
 void op_Fx65(chip8 * const, word);
 
-// Helper functions
+op_func * op_table[0x10];
+op_func * op_table0[0xF];
+op_func * op_table8[0xF];
+op_func * op_tableE[0xF];
+op_func * op_tableF[0x66];
+
+void table0_lookup(chip8 * const em, word op)
+{
+    op_table0[(op & 0x000Fu)](em, op);
+}
+void table8_lookup(chip8 * const em, word op)
+{
+    op_table8[(op & 0x000Fu)](em, op);
+}
+void tableE_lookup(chip8 * const em, word op)
+{
+    op_tableE[(op & 0x000Fu)](em, op);
+}
+void tableF_lookup(chip8 * const em, word op)
+{
+    op_tableF[(op & 0x00FFu)](em, op);
+}
+
+/////////////////////////////////////////////////////
+/// Helper Method Definitions
+/////////////////////////////////////////////////////
+
 byte rand_byte();
+
+/////////////////////////////////////////////////////
+/// CHIP8 Methods Implementations
+/////////////////////////////////////////////////////
 
 void chip8_init(chip8 * const emulator)
 {
@@ -56,6 +92,62 @@ void chip8_init(chip8 * const emulator)
 
     emulator->pc = ROM_START_ADDR;
     emulator->sp = 0;
+
+    // Op tables setup
+    op_table[0x0u] = &table0_lookup;
+    op_table[0x1u] = &op_1nnn;
+    op_table[0x2u] = &op_2nnn;
+    op_table[0x3u] = &op_3xkk;
+    op_table[0x4u] = &op_4xkk;
+    op_table[0x5u] = &op_5xy0;
+    op_table[0x6u] = &op_6xkk;
+    op_table[0x7u] = &op_7xkk;
+    op_table[0x8u] = &table8_lookup;
+    op_table[0x9u] = &op_9xy0;
+    op_table[0xAu] = &op_Annn;
+    op_table[0xBu] = &op_Bnnn;
+    op_table[0xCu] = &op_Cxkk;
+    op_table[0xDu] = &op_Dxyn;
+    op_table[0xEu] = &tableE_lookup;
+    op_table[0xFu] = &tableF_lookup;
+
+    for (byte i = 0; i < 0xFu; i++)
+    {
+        op_table0[i] = &op_noop;
+        op_table8[i] = &op_noop;
+        op_tableE[i] = &op_noop;
+    }
+
+    for (byte i = 0; i < 0x66u; i++)
+    {
+        op_tableF[i] = &op_noop;
+    }
+
+    op_table0[0x0u] = &op_00E0;
+    op_table0[0xEu] = &op_00EE;
+
+    op_table8[0x0u] - &op_8xy0;
+    op_table8[0x1u] - &op_8xy1;
+    op_table8[0x2u] - &op_8xy2;
+    op_table8[0x3u] - &op_8xy3;
+    op_table8[0x4u] - &op_8xy4;
+    op_table8[0x5u] - &op_8xy5;
+    op_table8[0x6u] - &op_8xy6;
+    op_table8[0x7u] - &op_8xy7;
+    op_table8[0xEu] - &op_8xyE;
+
+    op_tableE[0x1u] = &op_ExA1;
+    op_tableE[0xEu] = &op_Ex9E;
+
+    op_tableF[0x07u] = &op_Fx07;
+    op_tableF[0x0Au] = &op_Fx0A;
+    op_tableF[0x15u] = &op_Fx15;
+    op_tableF[0x18u] = &op_Fx18;
+    op_tableF[0x1Eu] = &op_Fx1E;
+    op_tableF[0x29u] = &op_Fx29;
+    op_tableF[0x33u] = &op_Fx33;
+    op_tableF[0x55u] = &op_Fx55;
+    op_tableF[0x65u] = &op_Fx65;
 }
 
 void chip8_load_rom(chip8 * const emulator, const char * const rom_file_name)
@@ -76,6 +168,26 @@ void chip8_load_rom(chip8 * const emulator, const char * const rom_file_name)
     fclose(fp);
 }
 
+void chip8_cycle(chip8 * const emulator)
+{
+    // Fetch
+    word instruction = emulator->memory[emulator->pc];
+
+    emulator->pc += 2;
+
+    // Decode
+    op_func * op = op_table[(instruction & 0xF000u) >> 12];
+
+    // Execute
+    op(emulator, instruction);
+
+    if (emulator->delay_timer != 0)
+        emulator->delay_timer--;
+
+    if (emulator->sound_timer != 0)
+        emulator->sound_timer--;
+}
+
 void chip8_memory_dump(const chip8 * const emulator)
 {
     printf("[");
@@ -88,14 +200,24 @@ void chip8_memory_dump(const chip8 * const emulator)
     printf("0x%X]\n", emulator->memory[MEMORY_SIZE-1]);
 }
 
+/////////////////////////////////////////////////////
+/// Ops Implementations
+/////////////////////////////////////////////////////
+
+// NOOP - Do nothing for undefined instruction
+void op_noop(chip8 * const _, word __)
+{
+    return;
+}
+
 // CLS - Clear video screen
-void op_00E0(chip8 * const emulator)
+void op_00E0(chip8 * const emulator, word _)
 {
     memset(emulator->video, 0, sizeof(emulator->video));
 }
 
 // RET - Return from subroutine
-void op_00EE(chip8 * const emulator)
+void op_00EE(chip8 * const emulator, word _)
 {
     emulator->sp--;
     emulator->pc = emulator->stack[emulator->sp];
@@ -441,6 +563,10 @@ void op_Fx65(chip8 * const emulator , word opcode)
 
     memcpy(&emulator->variable_regs[0x0u], &emulator->memory[emulator->index], reg+1);
 }
+
+/////////////////////////////////////////////////////
+/// Helper Method Implementations
+/////////////////////////////////////////////////////
 
 byte rand_byte()
 {
