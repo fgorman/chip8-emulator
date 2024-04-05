@@ -13,6 +13,8 @@
 #define ROM_START_ADDR 0x200
 #define FLAG_REGISTER 0xFu
 
+#define CYCLE_DELAY 5
+
 typedef uint8_t byte;
 typedef uint16_t word;
 
@@ -26,13 +28,11 @@ typedef struct chip8
     byte delay_timer;
     byte memory[MEMORY_SIZE];
     word stack[STACK_SIZE];
-    bool video[SCREEN_WIDTH * SCREEN_HEIGHT];
+    byte video[SCREEN_WIDTH * SCREEN_HEIGHT];
 } chip8;
 
 void chip8_init(chip8 * const);
 void chip8_load_rom(chip8 * const, const char * const);
 void chip8_cycle(chip8 * const);
-
-extern int quit;
 
 #endif

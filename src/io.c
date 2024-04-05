@@ -1,11 +1,13 @@
 #include "io.h"
 
+#include "log.h"
+
+#include <stdbool.h>
 #include <stdio.h>
 
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_video.h>
 
-#include "chip8.h"
+#define WINDOW_TITLE "CHIP-8 Emulator"
 
 int keys[NUM_KEYS];
 
@@ -13,29 +15,50 @@ void set_key(SDL_Keycode, int);
 
 SDL_Window * window;
 SDL_Renderer * renderer;
+SDL_Texture * texture;
 
 void io_init()
 {
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
-        fprintf( stderr, "Could not initialise SDL: %s\n", SDL_GetError() );
-        exit( -1 );
+        error_log("Could not initialize SDL: %s\n", SDL_GetError());
+        exit(-1);
     }
 
-    if (SDL_CreateWindowAndRenderer(SCREEN_WIDTH, SCREEN_HEIGHT, 0, &window, &renderer) < 0)
+    window = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+        SCREEN_WIDTH*SCREEN_SCALE, SCREEN_HEIGHT*SCREEN_SCALE, 0);
+    if (window == NULL)
     {
-        fprintf( stderr, "Could not set video mode: %s\n", SDL_GetError() );
-        SDL_Quit();
-        exit( -1 );
+        error_log("Could not create SDL window: %s\n", SDL_GetError());
+        io_teardown();
+        exit(-1);
     }
 
-    SDL_SetWindowData(window, "window_name", "chip8");
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    if (renderer == NULL)
+    {
+        error_log("Could not create SDL renderer: %s\n", SDL_GetError());
+        io_teardown();
+        exit(-1);
+    }
+
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB332, SDL_TEXTUREACCESS_STREAMING,
+        SCREEN_WIDTH, SCREEN_HEIGHT);
+    if (texture == NULL)
+    {
+        error_log("Could not create SDL texture: %s\n", SDL_GetError());
+        io_teardown();
+        exit(-1);
+    }
 
     memset(keys, 0, NUM_KEYS*sizeof(keys[0]));
 }
 
 void io_teardown()
 {
+    SDL_DestroyTexture(texture);
+    texture = NULL;
+
     SDL_DestroyRenderer(renderer);
     renderer = NULL;
 
@@ -45,13 +68,42 @@ void io_teardown()
     SDL_Quit();
 }
 
-void io_get_key_press()
+void io_update_screen(void const * buffer)
 {
+    if (SDL_UpdateTexture(texture, NULL, buffer, SCREEN_WIDTH) != 0)
+    {
+        error_log("Could not update texture: %s\n", SDL_GetError());
+        io_teardown();
+        exit(-1);
+    }
+
+    if (SDL_RenderClear(renderer) != 0)
+    {
+        error_log("Could not clear renderer: %s\n", SDL_GetError());
+        io_teardown();
+        exit(-1);
+    }
+
+    if (SDL_RenderCopy(renderer, texture, NULL, NULL) != 0)
+    {
+        error_log("Could not copy texture to renderer: %s\n", SDL_GetError());
+        io_teardown();
+        exit(-1);
+    }
+
+    SDL_RenderPresent(renderer);
+}
+
+bool io_get_key_press()
+{
+    bool quit = false;
+
     SDL_Event event;
 
     while(SDL_PollEvent(&event)) {
         
-        switch( event.type ){
+        switch(event.type)
+        {
             case SDL_KEYDOWN:
                 set_key(event.key.keysym.sym, 1);
                 break;
@@ -61,19 +113,15 @@ void io_get_key_press()
                 break;
 
             case SDL_QUIT:
-                quit = 1;
+                quit = true;
                 break;
 
             default:
-                return;
+                break;
         }
-
     }
-}
 
-void print_to_screen()
-{
-
+    return quit;
 }
 
 /*
@@ -134,9 +182,6 @@ void set_key(SDL_Keycode key, int val)
         case SDLK_v:
             keys[0xF] = val;
 			break;
-        case SDLK_ESCAPE:
-            quit = 1;
-            break;
         default:
             break;
     }

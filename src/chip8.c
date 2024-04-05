@@ -1,12 +1,11 @@
 #include "chip8.h"
 #include "font.h"
+#include "log.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-
-int quit = 0;
 
 /////////////////////////////////////////////////////
 /// Ops Definitions
@@ -89,6 +88,7 @@ void chip8_init(chip8 * const emulator)
 
     memset(emulator->memory, 0, MEMORY_SIZE);
     memcpy(emulator->memory+FONT_START_ADDR, FONT, FONT_NUM_SPRITES*FONT_SPRITE_SIZE);
+    memset(emulator->video, PIXEL_OFF, sizeof(emulator->video));
 
     emulator->pc = ROM_START_ADDR;
     emulator->sp = 0;
@@ -156,7 +156,7 @@ void chip8_load_rom(chip8 * const emulator, const char * const rom_file_name)
 
     if (fp == NULL)
     {  
-        printf("[CHIP8] %s: Unable to load rom: %s\n", __func__, rom_file_name);
+        error_log("Unable to load rom: %s\n", rom_file_name);
         exit(-1);
     }
 
@@ -201,7 +201,7 @@ void op_noop(chip8 * const _, word __)
 // CLS - Clear video screen
 void op_00E0(chip8 * const emulator, word _)
 {
-    memset(emulator->video, 0, sizeof(emulator->video));
+    memset(emulator->video, PIXEL_OFF, sizeof(emulator->video));
 }
 
 // RET - Return from subroutine
@@ -425,12 +425,12 @@ void op_Dxyn(chip8 * const emulator , word opcode)
 
             if (pixel)
             {
-                if (emulator->video[video_idx])
+                if (emulator->video[video_idx] == PIXEL_ON)
                 {
                     emulator->variable_regs[FLAG_REGISTER] = 0x1u;
                 }
 
-                emulator->video[video_idx] ^= pixel;
+                emulator->video[video_idx] ^= PIXEL_ON;
             }
         }
     }
