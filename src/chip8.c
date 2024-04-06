@@ -423,7 +423,7 @@ void op_Dxyn(chip8 * const emulator , word opcode)
 
         for (unsigned int col = 0; col < 8; col++)
         {
-            byte pixel = sprite & (0x80 >> 7);
+            byte pixel = sprite & (0x80 >> col);
             byte y_pos = (emulator->variable_regs[regx] + col) % SCREEN_WIDTH;
             word video_idx = x_pos * SCREEN_WIDTH + y_pos;
 
