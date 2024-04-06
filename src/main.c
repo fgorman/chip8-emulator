@@ -29,8 +29,8 @@ int main(int argc, char ** argv)
     {
         quit = io_get_key_press();
 
-	clock_gettime(CLOCK_MONOTONIC_RAW, &current_time);
-	uint64_t time_diff = current_time.tv_nsec - prev_time.tv_nsec;
+        clock_gettime(CLOCK_MONOTONIC_RAW, &current_time);
+        uint64_t time_diff = current_time.tv_nsec - prev_time.tv_nsec;
 
         if (time_diff > CYCLE_DELAY_NS)
         {

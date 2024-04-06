@@ -171,11 +171,11 @@ void chip8_load_rom(chip8 * const emulator, const char * const rom_file_name)
 void chip8_cycle(chip8 * const emulator)
 {
     // Fetch
-    word instruction = emulator->memory[emulator->pc];
+    word instruction = (emulator->memory[emulator->pc] << 0x8u) | emulator->memory[emulator->pc + 1];
 
-    #ifdef DEBUG
+    //#ifdef DEBUG
     debug_log("Fetched instruction: 0x%04X from PC: 0x%04X\n", instruction, emulator->pc);
-    #endif
+    //#endif
 
     emulator->pc += 2;
 
