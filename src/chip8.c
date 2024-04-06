@@ -126,15 +126,15 @@ void chip8_init(chip8 * const emulator)
     op_table0[0x0u] = &op_00E0;
     op_table0[0xEu] = &op_00EE;
 
-    op_table8[0x0u] - &op_8xy0;
-    op_table8[0x1u] - &op_8xy1;
-    op_table8[0x2u] - &op_8xy2;
-    op_table8[0x3u] - &op_8xy3;
-    op_table8[0x4u] - &op_8xy4;
-    op_table8[0x5u] - &op_8xy5;
-    op_table8[0x6u] - &op_8xy6;
-    op_table8[0x7u] - &op_8xy7;
-    op_table8[0xEu] - &op_8xyE;
+    op_table8[0x0u] = &op_8xy0;
+    op_table8[0x1u] = &op_8xy1;
+    op_table8[0x2u] = &op_8xy2;
+    op_table8[0x3u] = &op_8xy3;
+    op_table8[0x4u] = &op_8xy4;
+    op_table8[0x5u] = &op_8xy5;
+    op_table8[0x6u] = &op_8xy6;
+    op_table8[0x7u] = &op_8xy7;
+    op_table8[0xEu] = &op_8xyE;
 
     op_tableE[0x1u] = &op_ExA1;
     op_tableE[0xEu] = &op_Ex9E;
@@ -173,9 +173,9 @@ void chip8_cycle(chip8 * const emulator)
     // Fetch
     word instruction = (emulator->memory[emulator->pc] << 0x8u) | emulator->memory[emulator->pc + 1];
 
-    //#ifdef DEBUG
+    #ifdef DEBUG
     debug_log("Fetched instruction: 0x%04X from PC: 0x%04X\n", instruction, emulator->pc);
-    //#endif
+    #endif
 
     emulator->pc += 2;
 
